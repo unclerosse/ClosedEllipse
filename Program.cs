@@ -30,7 +30,11 @@ app.MapPost("/generate", (RequestDTO request, HttpContext ctx) =>
     {
         var gen = new SpheroidGenerator(request);
 
-        return Results.Created("/generate", gen.GetSpheroids().Select(x => new ResponseDTO(x)).ToArray());
+        var result = gen.Generate()?.Select(x => new ResponseDTO(x)).ToArray();
+        if (result is null)
+            return Results.BadRequest("Items with this properties cannot be created");
+        
+        return Results.Created("/generate", result);
 
     }
     catch (ArgumentException ex)
