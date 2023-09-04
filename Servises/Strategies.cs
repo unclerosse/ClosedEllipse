@@ -20,8 +20,8 @@ public class GammaDistribution : IStrategy
 
 public class UniformDistribution : IStrategy
 {
-    public double GenerateNumber(double mean, double stddev)
+    public double GenerateNumber(double lower, double upper)
     {
-        return new Random().NextDouble() * 2.0 - 1.0;
+        return lower + new Random().NextDouble() * (upper - lower);
     }
 }

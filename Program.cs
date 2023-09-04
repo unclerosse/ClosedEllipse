@@ -1,4 +1,5 @@
 using ClosedEllipse.Models;
+using ClosedEllipse.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,8 +25,18 @@ app.UseCors(x =>
 app.MapPost("/generate", (RequestDTO request, HttpContext ctx) =>
 {
     Console.WriteLine(request.ToString());
-    
-    return Results.Ok();
+
+    try
+    {
+        var gen = new SpheroidGenerator(request);
+
+        return Results.Created("/generate", gen.GetSpheroids().Select(x => new ResponseDTO(x)).ToArray());
+
+    }
+    catch (ArgumentException ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
 });
 
 app.Run();

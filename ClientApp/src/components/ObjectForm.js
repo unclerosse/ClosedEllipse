@@ -12,17 +12,13 @@ export default function ObjectForm() {
   const [semiAxisScale, setSemiAxisScale] = useState(0);
   const [rglobal, setRglobal] = useState(0);
   const [volumeType, setVolumeType] = useState('sphere');
-  const [distributionForCenters, setDistributionForCenters] = useState('gauss');
+  const [centerDistribution, setCenterDistribution] = useState('gauss');
   const [centerShape, setCenterShape] = useState(0);
   const [centerScale, setCenterScale] = useState(0);
   const [numberOfFiles, setNumberOfFiles] = useState(1);
 
   const handleSubmit = (event) => {
     event.preventDefault();
-
-    if (!isFinite('01')) {
-      console.log('here');
-    }
 
     const RequestDTO = {
       NumberOfItems: numberOfItems,
@@ -32,6 +28,7 @@ export default function ObjectForm() {
       SemiAxes: [],
       Rglobal: rglobal,
       VolumeType: volumeType,
+      CenterDistribution: centerDistribution,
       Centers: [],
       NumberOfFiles: numberOfFiles,
     };
@@ -42,8 +39,10 @@ export default function ObjectForm() {
       RequestDTO.SemiAxes = [semiAxisShape, semiAxisScale];
     }
 
-    if (distributionForCenters !== 'uniform') {
+    if (centerDistribution !== 'uniform') {
       RequestDTO.Centers = [centerShape, centerScale];
+    } else {
+      RequestDTO.Centers = [-1, 1]
     }
 
     fetch('http://localhost:5050/generate', {
@@ -149,12 +148,12 @@ export default function ObjectForm() {
         <label>
           Distribution for Centers: 
         </label>
-        <select className='input-field' value={distributionForCenters} onChange={(event) => setDistributionForCenters(event.target.value)}>
+        <select className='input-field' value={centerDistribution} onChange={(event) => setCenterDistribution(event.target.value)}>
           <option value="gauss">Gauss</option>
           <option value="gamma">Gamma</option>
           <option value="uniform">Uniform</option>
         </select>
-        {distributionForCenters !== 'uniform' && (
+        {centerDistribution !== 'uniform' && (
           <>
             <div className='input-data'>
               <label>

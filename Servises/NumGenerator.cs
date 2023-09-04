@@ -4,6 +4,8 @@ public class NumGenerator
 {
     private IStrategy _strategy;
 
+    public NumGenerator() { }
+
     public NumGenerator(IStrategy strategy)
     {
         _strategy = strategy;
@@ -14,23 +16,23 @@ public class NumGenerator
         _strategy = strategy;
     }
 
-    public double Next(double mean, double stddev) 
+    public double Next(double shape, double scale) 
     { 
-        return _strategy.GenerateNumber(mean, stddev); 
+        return _strategy.GenerateNumber(shape, scale); 
     }
 
-    public double[] NextTriplet(double mean, double stddev)
+    public double[] NextTriplet(double shape, double scale)
     {
         return new double[] 
         { 
-            _strategy.GenerateNumber(mean, stddev),
-            _strategy.GenerateNumber(mean, stddev),
-            _strategy.GenerateNumber(mean, stddev) 
+            _strategy.GenerateNumber(shape, scale),
+            _strategy.GenerateNumber(shape, scale),
+            _strategy.GenerateNumber(shape, scale)
         };
     }
 }
 
 public interface IStrategy 
 {
-    double GenerateNumber(double mean, double stddev);
+    double GenerateNumber(double shape, double scale);
 }

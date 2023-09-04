@@ -8,30 +8,23 @@ public class Spheroid
 
     public double Eccentricity { get; private set; }
 
-    public double Azimuth { get; private set; }
-    public double Zenith { get; private set; }
-
-
-    public Spheroid(double eccentricity, double semiAxis, double x, double y, double z, double azimuth, double zenith)
+    public Spheroid(double eccentricity, double semiAxis, Point center)
     {
         if (eccentricity < 0 || eccentricity > 1)
-            throw new ArgumentOutOfRangeException
-                (nameof(Eccentricity), "Eccentricity cannot be less than 0 or great than 1");
+            throw new ArgumentException
+                ("Eccentricity cannot be less than 0 or great than 1");
         Eccentricity = eccentricity;
         
 
         if (semiAxis <= 0)
-            throw new ArgumentOutOfRangeException
-                (nameof(SemiAxis), "The length of semi-axis cannnot be less than or equal to 0");
+            throw new ArgumentException
+                ("The length of semi-axis cannnot be less than or equal to 0");
         
         SemiAxis = semiAxis;
         SemiMinorAxis = Math.Sqrt((1 - Math.Pow(Eccentricity, 2)) * Math.Pow(SemiAxis, 2));
 
         
-        Coordinates = new(x, y, z);
-
-        Azimuth = azimuth;
-        Zenith = zenith;
+        Coordinates = center;;
     }
 
     protected bool CheckPoint(Point point)
