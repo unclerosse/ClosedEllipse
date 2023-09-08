@@ -1,5 +1,6 @@
 using ClosedEllipse.Models;
 using ClosedEllipse.Services;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,13 @@ app.MapPost("/generate", (RequestDTO request, HttpContext ctx) =>
         if (result is null)
             return Results.BadRequest("Items with this properties cannot be created");
         
+        Console.WriteLine($"Total items generated: {result.Length}");
+        
+        var fileName = "spheroid-response.json";
+        var filePath = Path.Combine(Directory.GetCurrentDirectory(), fileName);
+
+        File.WriteAllText(fileName, JsonSerializer.Serialize(result));
+
         return Results.Created("/generate", result);
 
     }
@@ -44,3 +52,5 @@ app.MapPost("/generate", (RequestDTO request, HttpContext ctx) =>
 });
 
 app.Run();
+
+public partial class Program { }

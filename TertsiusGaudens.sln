@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClosedEllipse", "ClosedEllipse.csproj", "{B6952B4C-2572-4F26-BF7B-631221E78FD4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClosedEllipse", "ClosedEllipse\ClosedEllipse.csproj", "{B6952B4C-2572-4F26-BF7B-631221E78FD4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClosedELlipse.Tests", "ClosedELlipse.Tests\ClosedELlipse.Tests.csproj", "{19C480B4-B0A5-44BC-AF74-19BFD27666B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{B6952B4C-2572-4F26-BF7B-631221E78FD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6952B4C-2572-4F26-BF7B-631221E78FD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B6952B4C-2572-4F26-BF7B-631221E78FD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19C480B4-B0A5-44BC-AF74-19BFD27666B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19C480B4-B0A5-44BC-AF74-19BFD27666B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19C480B4-B0A5-44BC-AF74-19BFD27666B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19C480B4-B0A5-44BC-AF74-19BFD27666B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

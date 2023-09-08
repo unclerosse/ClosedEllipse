@@ -37,7 +37,7 @@ public record Spheroid
         Volume = 4.0/3.0 * Math.PI * SemiMajorAxis * Math.Pow(SemiMinorAxis, 2);
     }
 
-    protected bool CheckPoint(Point point)
+    public bool CheckPoint(Point point)
     {
         point = PointTransformation(point);
 
@@ -84,8 +84,8 @@ public record Spheroid
     public Point PointTransformation(Point point)
     {
         var x = point.X - Coordinates.X;
-        var y = point.X - Coordinates.X;
-        var z = point.X - Coordinates.X;
+        var y = point.Y - Coordinates.Y;
+        var z = point.Z - Coordinates.Z;
 
         double rotatedX = x * Math.Cos(EulerAngleY) * Math.Cos(EulerAngleZ) +
                         y * (Math.Cos(EulerAngleZ) * Math.Sin(EulerAngleX) * Math.Sin(EulerAngleY) - Math.Cos(EulerAngleX) * Math.Sin(EulerAngleZ)) +
