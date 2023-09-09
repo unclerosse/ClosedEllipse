@@ -20,7 +20,7 @@ public class FunctionalTests
             Rglobal = 1e4 + 350,
             VolumeType = "sphere",
             CenterDistribution = "uniform",
-            Centers = new double[2] { 0, 0,},
+            Centers = new double[2] { -1, 1,},
             NumberOfFiles = 1
         };
 

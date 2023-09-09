@@ -7,7 +7,7 @@ public class SpheroidGenerator
     private readonly int TryCount = 20;
     // private readonly double Excess = 1.005;
 
-    private List<Spheroid>? Spheroids { get; set; } = new List<Spheroid>();
+    private List<Spheroid> Spheroids { get; set; } = new List<Spheroid>();
     private double GlobalVolume { get; set; } 
     private NumGenerator SemiAxisGenerator { get; set; }
     private NumGenerator CenterGenerator { get; set; }
@@ -38,9 +38,16 @@ public class SpheroidGenerator
     {
         if (request.NumberOfItems <= 0 || (long)request.NumberOfItems != request.NumberOfItems)
             throw new ArgumentException("Number of items must be int and must be greater than or equal to one");
-        
-        if (request.NC <= 0)
-            throw new ArgumentException("NC must be greater than zero");
+
+        if (request.NC == 0 && request.Rglobal == 0)
+            throw new ArgumentException("NC and Rglobal cannot be zero at the same time");
+        if (request.NC > 0 && request.Rglobal > 0)
+            throw new ArgumentException("NC and Rglobal cannot be greater than zero at the same time");
+
+        if (request.NC < 0)
+            throw new ArgumentException("NC must be greater than or equal to zero");
+        if (request.Rglobal < 0)
+            throw new ArgumentException("Rglobal must be greater than or equal to zero");
         
         if (request.Eccentricity < 0 || request.Eccentricity >= 1)
             throw new ArgumentException("Eccentricity must be greater than or equal to zero and greater than one");
@@ -55,9 +62,6 @@ public class SpheroidGenerator
             (request.SemiAxes.Length != 2 || request.SemiAxes[0] < 0 || request.SemiAxes[1] < 0))
             throw new ArgumentException("All params for Gamma distribution must be provided correctly");
 
-        if (request.Rglobal <= 0)
-            throw new ArgumentException("Global radius must be greater than zero");
-
         if (request.CenterDistribution == "gauss" &&
             (request.Centers.Length != 2 || request.Centers[1] < 0))
             throw new ArgumentException("All params for Gauss distribution must be provided correctly");
@@ -70,101 +74,140 @@ public class SpheroidGenerator
         SemiAxisGenerator = SetDistribution(new NumGenerator(), request.SemiAxisDistribution);
         CenterGenerator = SetDistribution(new NumGenerator(), request.CenterDistribution);
 
-        if (request.VolumeType == "cube")
-            GlobalVolume = Math.Pow(request.Rglobal * 2, 3);
-        else if (request.VolumeType == "sphere")
-            GlobalVolume = 4.0/3.0 * Math.PI * Math.Pow(request.Rglobal, 3);
-
         Request = request;
     }
 
     public List<Spheroid>? Generate()
     {
-        var tryCount = TryCount;
+        return Generate((long)Request.NumberOfItems);
+    } 
+
+    private List<Spheroid>? Generate(long numOfItems)
+    {
         double localVolume = 0;
-
-        int numThreads = Environment.ProcessorCount;
-        var objectsPerThread = (long)Request.NumberOfItems / numThreads;
-        Console.WriteLine($"{nameof(objectsPerThread)} {objectsPerThread}\n{nameof(numThreads)} {numThreads}");
-
-        Parallel.For(0, numThreads, async threadId =>
-        {    
-            var start = threadId * objectsPerThread;
-            var end = (threadId + 1) * objectsPerThread;
             
-            for (var i = start; i < end; ++i)
-            {
-                if (tryCount == 0)
-                {
-                    Console.WriteLine($"Skipping object {i}...");
-                    tryCount = TryCount;
-                    continue;
-                }
+        for (var i = 0; i < numOfItems; ++i)
+        {
+            var item = new Spheroid(
+                Request.Eccentricity,
+                SemiAxisGenerator.Next(
+                    Request.SemiAxes[0],
+                    Request.SemiAxes[1]
+                ),
+                new Point(CenterGenerator.NextTriplet(
+                    Request.Centers[0],
+                    Request.Centers[1]
+                )),
+                new NumGenerator(new UniformDistribution()).Next(-Math.PI, Math.PI),
+                new NumGenerator(new UniformDistribution()).Next(-Math.PI, Math.PI),
+                new NumGenerator(new UniformDistribution()).Next(-Math.PI, Math.PI)
+                );
 
-                var item = new Spheroid(
-                        Request.Eccentricity,
-                        SemiAxisGenerator.Next(
-                            Request.SemiAxes[0],
-                            Request.SemiAxes[1]
-                        ),
-                        new Point(CenterGenerator.NextTriplet(
-                            Request.Centers[0],
-                            Request.Centers[1]
-                        )) * Request.Rglobal,
-                        new NumGenerator(new UniformDistribution()).Next(-Math.PI, Math.PI),
-                        new NumGenerator(new UniformDistribution()).Next(-Math.PI, Math.PI),
-                        new NumGenerator(new UniformDistribution()).Next(-Math.PI, Math.PI)
-                    );
+            localVolume += item.Volume;
+            Spheroids.Add(item);
+        }
 
-                if (!(Request.VolumeType == "cube" &&
-                    item.Coordinates.X > -Request.Rglobal && item.Coordinates.X < Request.Rglobal &&
-                    item.Coordinates.Y > -Request.Rglobal && item.Coordinates.Y < Request.Rglobal &&
-                    item.Coordinates.Z > -Request.Rglobal && item.Coordinates.Z < Request.Rglobal) &&
-                    !(Request.VolumeType == "sphere" &&
-                    Point.Distance(item.Coordinates) < Request.Rglobal))
-                {
-                    --tryCount;
-                    --i;
-                    continue;
-                }
+        if (Request.Rglobal == 0)
+        {
+            GlobalVolume = localVolume / Request.NC;
+            Request.Rglobal = Math.Cbrt(3 * GlobalVolume / (4 * Math.PI));
+        }
+        else if (Request.NC == 0)
+        {
+            GlobalVolume = 4.0 / 3.0 * Math.PI * Math.Pow(Request.Rglobal, 3);
+            Request.NC = localVolume / GlobalVolume;
+        }
 
-                localVolume += item.Volume;
-                await Task.Run(() => Spheroids!.Add(item));
-                tryCount = TryCount;
-            }
-        });
-            
-        Console.WriteLine($"Local volume: {localVolume}\nGlobal volume: {GlobalVolume}\nNC: {localVolume/GlobalVolume}");
+        Console.WriteLine($"Local volume: {localVolume}\nGlobal volume: {GlobalVolume}\nNC: {Request.NC}");
 
         if (localVolume >= GlobalVolume)
-        {
-            Spheroids = null;
             return null;
-        }
+
+        UpdateCoordinates(Spheroids);
         
-        if (Spheroids != null && Spheroids.Count > 1)
-            RemoveIntersections();     
+        if (Spheroids.Count > 1)
+            RemoveIntersections();                 
 
         return Spheroids;
     }
 
     private void RemoveIntersections() 
     {
-        for (int i = 0; i < Spheroids!.Count - 1; ++i)
-            for (int j = i + 1; j < Spheroids!.Count; ++j)
+        int intersections = 0;
+        var deleted = new List<Spheroid>();
+        
+        for (int i = 0; i < Spheroids.Count - 1; ++i)
+            for (int j = i + 1; j < Spheroids.Count; ++j)
             {
-                if (Point.Distance(Spheroids[i].Coordinates, Spheroids[j].Coordinates) <= 
+                if (Point.Distance(Spheroids[i].Coordinates, Spheroids[j].Coordinates) <=
                     Spheroids[i].SemiMajorAxis + Spheroids[j].SemiMajorAxis &&
                     Spheroid.CheckIntersection(Spheroids[i], Spheroids[j]))
-                {
-                    // Console.WriteLine("Intersection is found");
-                    // Console.WriteLine($"Removed object: {Spheroids[j]}");
+                {   
+                    deleted.Add(Spheroids[j]);
                     Spheroids.RemoveAt(j);
+                    ++intersections;
                     --j;
                 }
             }
-                
-    }
+        
+        Console.WriteLine($"Total intersections found firstly: {intersections}");
 
+        for (int tryCount = TryCount; tryCount >= 0; --tryCount)
+        {
+            intersections = 0;
+            if (deleted.Count == 0)
+                break;
+
+            UpdateCoordinates(deleted);
+            Spheroids.AddRange(deleted);
+            var count = deleted.Count;
+            deleted = new();
+
+            for (int i = 0; i < Spheroids.Count - 1; ++i)
+                for (int j = Spheroids.Count - count - 1; j < Spheroids.Count; ++j)
+                {
+                    if (Point.Distance(Spheroids[i].Coordinates, Spheroids[j].Coordinates) <=
+                    Spheroids[i].SemiMajorAxis + Spheroids[j].SemiMajorAxis &&
+                    Spheroid.CheckIntersection(Spheroids[i], Spheroids[j]))
+                    {   
+                        deleted.Add(Spheroids[j]);
+                        Spheroids.RemoveAt(j);
+                        ++intersections;
+                        --j;
+                    }
+                }
+        
+            Console.WriteLine($"Total intersections found in {TryCount - tryCount + 1} loop: {intersections}");
+        }
+
+    }
+    
+    private void UpdateCoordinates(List<Spheroid> items)
+    {
+        foreach (var item in items.ToList())
+        {  
+            item.SetNewCoordinates(item.Coordinates * Request.Rglobal);
+            for (var tryCount = TryCount; tryCount >= 0; --tryCount)
+                if (!(Request.VolumeType == "cube" &&
+                    item.Coordinates.X > -Request.Rglobal && item.Coordinates.X < Request.Rglobal &&
+                    item.Coordinates.Y > -Request.Rglobal && item.Coordinates.Y < Request.Rglobal &&
+                    item.Coordinates.Z > -Request.Rglobal && item.Coordinates.Z < Request.Rglobal) &&
+                    !(Request.VolumeType == "sphere" &&
+                    Point.Distance(item.Coordinates) < Request.Rglobal))
+                    {
+                        if (tryCount == 0)
+                        {
+                            Console.WriteLine($"Skipping object {item}...");
+                            items.Remove(item);
+                        }
+                        
+                        item.SetNewCoordinates(new Point(CenterGenerator.NextTriplet(
+                            Request.Centers[0],
+                            Request.Centers[1]
+                        )) * Request.Rglobal);
+                        continue;
+                    }
+        }
+    }
 
 }

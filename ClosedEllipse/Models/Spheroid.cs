@@ -37,6 +37,8 @@ public record Spheroid
         Volume = 4.0/3.0 * Math.PI * SemiMajorAxis * Math.Pow(SemiMinorAxis, 2);
     }
 
+    public void SetNewCoordinates(Point point) { Coordinates = point; }
+    
     public bool CheckPoint(Point point)
     {
         point = PointTransformation(point);
@@ -68,19 +70,19 @@ public record Spheroid
         return result;
     }
 
-    public static bool CheckIntersection(Spheroid firstSpheroid, Spheroid secondSpheroid)
+    public static bool CheckIntersection(Spheroid firstSpheroid, Spheroid secondSpheroid, int amount=500)
     {
         if (secondSpheroid.CheckPoint(firstSpheroid.Coordinates))
             return true;
         
-        var points = firstSpheroid.SliceSpheroid(500);
+        var points = firstSpheroid.SliceSpheroid(amount);
         for (var i = 0; i < points.Count; ++i)
             if (secondSpheroid.CheckPoint(points[i]))
                 return true;
 
         return false;
     }
-
+    
     public Point PointTransformation(Point point)
     {
         var x = point.X - Coordinates.X;
