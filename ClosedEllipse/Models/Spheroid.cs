@@ -44,27 +44,35 @@ public record Spheroid
         point = PointTransformation(point);
 
         var result = 
-            (Math.Pow(point.X - Coordinates.X, 2) / Math.Pow(SemiMajorAxis, 2)) + 
-            (Math.Pow(point.Y - Coordinates.Y, 2) / Math.Pow(SemiMinorAxis, 2)) + 
-            (Math.Pow(point.Z - Coordinates.Z, 2) / Math.Pow(SemiMinorAxis, 2));
+            (Math.Pow(point.X, 2) / Math.Pow(SemiMajorAxis, 2)) + 
+            (Math.Pow(point.Y, 2) / Math.Pow(SemiMinorAxis, 2)) + 
+            (Math.Pow(point.Z, 2) / Math.Pow(SemiMinorAxis, 2));
 
-        return result <= 1;
+        return double.Round(result, 14) <= 1;
     }
 
     protected List<Point> SliceSpheroid(int amount)
     {
-        var result = new List<Point>();
-
+        var result = new List<Point>()
+        {
+            PointRotation(new(Coordinates.X - SemiMajorAxis, Coordinates.Y, Coordinates.Z)),
+            PointRotation(new(Coordinates.X + SemiMajorAxis, Coordinates.Y, Coordinates.Z)),
+            PointRotation(new(Coordinates.X, Coordinates.Y - SemiMinorAxis, Coordinates.Z)),
+            PointRotation(new(Coordinates.X, Coordinates.Y + SemiMinorAxis, Coordinates.Z)),
+            PointRotation(new(Coordinates.X, Coordinates.Y, Coordinates.Z - SemiMinorAxis)),
+            PointRotation(new(Coordinates.X, Coordinates.Y, Coordinates.Z + SemiMinorAxis)),
+        };
+        
         for (int i = 0; i < amount; i++)
         {
             double theta = 2 * Math.PI * i / amount; 
             double phi = Math.PI * i / amount;
 
-            double x = SemiMinorAxis * Math.Cos(theta) * Math.Sin(phi);
-            double y = SemiMajorAxis * Math.Sin(theta) * Math.Sin(phi);
+            double x = SemiMajorAxis * Math.Cos(theta) * Math.Sin(phi);
+            double y = SemiMinorAxis * Math.Sin(theta) * Math.Sin(phi);
             double z = SemiMinorAxis * Math.Cos(phi);
 
-            result.Add(PointTransformation(new Point(Coordinates.X + x, Coordinates.Y + y, Coordinates.Z + z)));
+            result.Add(PointRotation(new Point(Coordinates.X + x, Coordinates.Y + y, Coordinates.Z + z)));
         }
         
         return result;
@@ -72,6 +80,14 @@ public record Spheroid
 
     public static bool CheckIntersection(Spheroid firstSpheroid, Spheroid secondSpheroid, int amount=500)
     {
+        if (Point.Distance(firstSpheroid.Coordinates, secondSpheroid.Coordinates) >
+            firstSpheroid.SemiMajorAxis + secondSpheroid.SemiMajorAxis)
+            return false;
+        
+        if (Point.Distance(firstSpheroid.Coordinates, secondSpheroid.Coordinates) <=
+            firstSpheroid.SemiMinorAxis + secondSpheroid.SemiMinorAxis)
+            return true;
+
         if (secondSpheroid.CheckPoint(firstSpheroid.Coordinates))
             return true;
         
@@ -89,18 +105,11 @@ public record Spheroid
         var y = point.Y - Coordinates.Y;
         var z = point.Z - Coordinates.Z;
 
-        double rotatedX = x * Math.Cos(EulerAngleY) * Math.Cos(EulerAngleZ) +
-                        y * (Math.Cos(EulerAngleZ) * Math.Sin(EulerAngleX) * Math.Sin(EulerAngleY) - Math.Cos(EulerAngleX) * Math.Sin(EulerAngleZ)) +
-                        z * (Math.Sin(EulerAngleX) * Math.Sin(EulerAngleZ) + Math.Cos(EulerAngleX) * Math.Cos(EulerAngleZ) * Math.Sin(EulerAngleY));
+        return new Point(x, y, z);
+    }
 
-        double rotatedY = x * Math.Cos(EulerAngleY) * Math.Sin(EulerAngleZ) +
-                        y * (Math.Cos(EulerAngleX) * Math.Cos(EulerAngleZ) + Math.Sin(EulerAngleX) * Math.Sin(EulerAngleY) * Math.Sin(EulerAngleZ)) +
-                        z * (-Math.Cos(EulerAngleZ) * Math.Sin(EulerAngleX) + Math.Cos(EulerAngleX) * Math.Sin(EulerAngleY) * Math.Sin(EulerAngleZ));
-
-        double rotatedZ = -x * Math.Sin(EulerAngleY) +
-                        y * Math.Cos(EulerAngleY) * Math.Sin(EulerAngleX) +
-                        z * Math.Cos(EulerAngleX) * Math.Cos(EulerAngleY);
-
-        return new Point(rotatedX, rotatedY, rotatedZ);
+    public Point PointRotation(Point point)
+    {
+        return point.Rotate(EulerAngleX, EulerAngleY, EulerAngleZ);
     }
 }

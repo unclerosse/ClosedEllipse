@@ -31,6 +31,27 @@ public record Point
         Length = Math.Sqrt(X * X + Y * Y + Z * Z);
     }
 
+    public Point Rotate(double alpha, double beta, double gamma)
+    {
+        double rotatedX = X * (Math.Cos(alpha) * Math.Cos(gamma) - Math.Cos(beta) * Math.Sin(alpha) * Math.Sin(gamma)) + 
+                        Y * (-Math.Cos(gamma) * Math.Sin(alpha) - Math.Cos(alpha) * Math.Cos(beta) * Math.Sin(gamma)) + 
+                        Z * Math.Sin(beta) * Math.Sin(gamma);
+
+        double rotatedY = X * (Math.Cos(beta) * Math.Cos(gamma) * Math.Sin(alpha) + Math.Cos(alpha) * Math.Sin(gamma)) +
+                        Y * (Math.Cos(alpha) * Math.Cos(beta) * Math.Cos(gamma) - Math.Sin(alpha) * Math.Sin(gamma)) +
+                        Z * (-Math.Cos(gamma) * Math.Sin(beta));
+
+        double rotatedZ = X * Math.Sin(alpha) * Math.Sin(beta) +
+                        Y * Math.Cos(alpha) * Math.Sin(beta) +
+                        Z * Math.Cos(beta);
+        
+        X = rotatedX;
+        Y = rotatedY;
+        Z = rotatedZ;
+
+        return this;
+    }
+
     public static Point operator -(Point p1, Point p2) { return new Point(p1.X - p2.X, p1.Y - p2.Y, p1.Z - p2.Z); }
     public static Point operator *(Point p, double number) { return new Point(p.X * number, p.Y * number, p.Z * number); }
 

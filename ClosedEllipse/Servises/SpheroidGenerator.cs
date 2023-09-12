@@ -131,55 +131,37 @@ public class SpheroidGenerator
         return Spheroids;
     }
 
-    private void RemoveIntersections() 
+    private List<Spheroid> RemoveIntersections() 
     {
-        int intersections = 0;
         var deleted = new List<Spheroid>();
-        
-        for (int i = 0; i < Spheroids.Count - 1; ++i)
-            for (int j = i + 1; j < Spheroids.Count; ++j)
-            {
-                if (Point.Distance(Spheroids[i].Coordinates, Spheroids[j].Coordinates) <=
-                    Spheroids[i].SemiMajorAxis + Spheroids[j].SemiMajorAxis &&
-                    Spheroid.CheckIntersection(Spheroids[i], Spheroids[j]))
-                {   
-                    deleted.Add(Spheroids[j]);
-                    Spheroids.RemoveAt(j);
-                    ++intersections;
-                    --j;
-                }
-            }
-        
-        Console.WriteLine($"Total intersections found firstly: {intersections}");
-
         for (int tryCount = TryCount; tryCount >= 0; --tryCount)
         {
-            intersections = 0;
-            if (deleted.Count == 0)
+            if (deleted.Count == 0 && tryCount != TryCount)
                 break;
 
-            UpdateCoordinates(deleted);
+            Console.WriteLine($"{TryCount - tryCount}/{TryCount}");
+            if (tryCount == 0)
+                return deleted;
+
             Spheroids.AddRange(deleted);
-            var count = deleted.Count;
-            deleted = new();
+            deleted.Clear();
 
             for (int i = 0; i < Spheroids.Count - 1; ++i)
-                for (int j = Spheroids.Count - count - 1; j < Spheroids.Count; ++j)
+                for (int j = i + 1; j < Spheroids.Count; ++j)
                 {
-                    if (Point.Distance(Spheroids[i].Coordinates, Spheroids[j].Coordinates) <=
-                    Spheroids[i].SemiMajorAxis + Spheroids[j].SemiMajorAxis &&
-                    Spheroid.CheckIntersection(Spheroids[i], Spheroids[j]))
+                    if (Spheroid.CheckIntersection(Spheroids[i], Spheroids[j]))
                     {   
                         deleted.Add(Spheroids[j]);
                         Spheroids.RemoveAt(j);
-                        ++intersections;
                         --j;
                     }
                 }
-        
-            Console.WriteLine($"Total intersections found in {TryCount - tryCount + 1} loop: {intersections}");
+
+            Console.WriteLine($"Intersections found: {deleted.Count}");
+            UpdateCoordinates(deleted);
         }
 
+        return new List<Spheroid>();
     }
     
     private void UpdateCoordinates(List<Spheroid> items)
