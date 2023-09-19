@@ -13,11 +13,11 @@ public record ResponseDTO
 
     public ResponseDTO(Spheroid spheroid)
     {
-        X = spheroid.Coordinates.X;
-        Y = spheroid.Coordinates.Y;
-        Z = spheroid.Coordinates.Z;
-        SemiMajorAxis = spheroid.SemiMajorAxis;
-        SemiMinorAxis = spheroid.SemiMinorAxis;
+        X = double.Round(spheroid.Coordinates.X, 4);
+        Y = double.Round(spheroid.Coordinates.Y, 4);
+        Z = double.Round(spheroid.Coordinates.Z, 4);
+        SemiMajorAxis = double.Round(spheroid.SemiMajorAxis, 8);
+        SemiMinorAxis = double.Round(spheroid.SemiMinorAxis, 8);
         EulerAngleX = spheroid.EulerAngleX;
         EulerAngleY = spheroid.EulerAngleY;
         EulerAngleZ = spheroid.EulerAngleZ;

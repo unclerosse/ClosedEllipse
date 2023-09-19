@@ -16,3 +16,8 @@ code {
   background-color: #1b6ec2;
   border-color: #1861ac;
 }
+
+div {
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  color: #052A42;
+}

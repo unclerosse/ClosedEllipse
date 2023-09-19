@@ -49,8 +49,11 @@ app.MapPost("/generate", (RequestDTO request, HttpContext ctx) =>
     {
         return Results.BadRequest(ex.Message);
     }
+    catch(Exception ex)
+    {
+        Console.WriteLine($"{ex.StackTrace}");
+        return Results.Problem("Something went wrong...");
+    }
 });
 
 app.Run();
-
-public partial class Program { }

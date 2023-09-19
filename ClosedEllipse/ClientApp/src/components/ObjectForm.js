@@ -67,7 +67,7 @@ export default function ObjectForm() {
         <label>
           NC: 
         </label>
-        <input className='input-field' type="number" value={nc} onChange={(event) => setNC(event.target.value)}/>
+        <input className='input-field' type="number" value={nc} onChange={(event) => {setNC(event.target.value); setRglobal(0);}}/>
       </div>
       
 
@@ -131,7 +131,7 @@ export default function ObjectForm() {
         <label>
           Rglobal: 
         </label>
-        <input className='input-field' type="number" value={rglobal} onChange={(event) => setRglobal(event.target.value)}/>
+        <input className='input-field' type="number" value={rglobal} onChange={(event) => {setRglobal(event.target.value); setNC(0);}}/>
       </div>
     
       <div className='input-data'>

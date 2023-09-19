@@ -87,25 +87,25 @@ public class SpheroidGenerator
         double localVolume = 0;
             
         for (var i = 0; i < numOfItems; ++i)
-        {
-            var item = new Spheroid(
-                Request.Eccentricity,
-                SemiAxisGenerator.Next(
-                    Request.SemiAxes[0],
-                    Request.SemiAxes[1]
-                ),
-                new Point(CenterGenerator.NextTriplet(
-                    Request.Centers[0],
-                    Request.Centers[1]
-                )),
-                new NumGenerator(new UniformDistribution()).Next(-Math.PI, Math.PI),
-                new NumGenerator(new UniformDistribution()).Next(-Math.PI, Math.PI),
-                new NumGenerator(new UniformDistribution()).Next(-Math.PI, Math.PI)
-                );
+            {
+                var item = new Spheroid(
+                    Request.Eccentricity,
+                    SemiAxisGenerator.Next(
+                        Request.SemiAxes[0],
+                        Request.SemiAxes[1]
+                    ),
+                    new Point(CenterGenerator.NextTriplet(
+                        Request.Centers[0],
+                        Request.Centers[1]
+                    )),
+                    new NumGenerator(new UniformDistribution()).Next(-Math.PI, Math.PI),
+                    new NumGenerator(new UniformDistribution()).Next(-Math.PI, Math.PI),
+                    new NumGenerator(new UniformDistribution()).Next(-Math.PI, Math.PI)
+                    );
 
-            localVolume += item.Volume;
-            Spheroids.Add(item);
-        }
+                localVolume += item.Volume;
+                Spheroids.Add(item);
+            }
 
         if (Request.Rglobal == 0)
         {
@@ -120,7 +120,7 @@ public class SpheroidGenerator
 
         Console.WriteLine($"Local volume: {localVolume}\nGlobal volume: {GlobalVolume}\nNC: {Request.NC}");
 
-        if (localVolume >= GlobalVolume)
+        if (localVolume >= GlobalVolume || Request.NC > 0.4)
             return null;
 
         UpdateCoordinates(Spheroids);
@@ -131,17 +131,18 @@ public class SpheroidGenerator
         return Spheroids;
     }
 
-    private List<Spheroid> RemoveIntersections() 
+    private List<Spheroid>? RemoveIntersections() 
     {
         var deleted = new List<Spheroid>();
         for (int tryCount = TryCount; tryCount >= 0; --tryCount)
         {
             if (deleted.Count == 0 && tryCount != TryCount)
+                return null;
+
+            if (tryCount == 0)
                 break;
 
             Console.WriteLine($"{TryCount - tryCount}/{TryCount}");
-            if (tryCount == 0)
-                return deleted;
 
             Spheroids.AddRange(deleted);
             deleted.Clear();
@@ -161,8 +162,9 @@ public class SpheroidGenerator
             UpdateCoordinates(deleted);
         }
 
-        return new List<Spheroid>();
+        return deleted;
     }
+
     
     private void UpdateCoordinates(List<Spheroid> items)
     {
