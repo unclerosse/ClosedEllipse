@@ -4,7 +4,7 @@ namespace ClosedEllipse.Services;
 
 public class SpheroidGenerator
 {
-    private readonly int TryCount = 20;
+    private readonly int TryCount = 1_000;
     // private readonly double Excess = 1.005;
 
     private List<Spheroid> Spheroids { get; set; } = new List<Spheroid>();
@@ -134,29 +134,45 @@ public class SpheroidGenerator
     private List<Spheroid>? RemoveIntersections() 
     {
         var deleted = new List<Spheroid>();
+        for (int i = 0; i < Spheroids.Count - 1; ++i)
+            for (int j = i + 1; j < Spheroids.Count; ++j)
+                if (Spheroid.CheckIntersection(Spheroids[i], Spheroids[j]))
+                {   
+                    deleted.Add(Spheroids[j]);
+                    Spheroids.RemoveAt(j);
+                    --j;
+                }
+
+        Console.WriteLine($"Intersections found: {deleted.Count}");
+        UpdateCoordinates(deleted);
+        
         for (int tryCount = TryCount; tryCount >= 0; --tryCount)
         {
-            if (deleted.Count == 0 && tryCount != TryCount)
+            if (deleted.Count == 0)
                 return null;
 
             if (tryCount == 0)
                 break;
 
-            Console.WriteLine($"{TryCount - tryCount}/{TryCount}");
+            Console.WriteLine($"{TryCount - tryCount + 1}/{TryCount}");
 
-            Spheroids.AddRange(deleted);
-            deleted.Clear();
-
-            for (int i = 0; i < Spheroids.Count - 1; ++i)
-                for (int j = i + 1; j < Spheroids.Count; ++j)
+            foreach (var del in deleted.ToList())
+            {
+                bool hasIntersected = false;
+                foreach (var spheroid in Spheroids)
                 {
-                    if (Spheroid.CheckIntersection(Spheroids[i], Spheroids[j]))
+                    if (Spheroid.CheckIntersection(del, spheroid))
                     {   
-                        deleted.Add(Spheroids[j]);
-                        Spheroids.RemoveAt(j);
-                        --j;
+                       hasIntersected = true;
+                       break;
                     }
                 }
+                if (!hasIntersected)
+                {
+                    Spheroids.Add(del);
+                    deleted.Remove(del);
+                }
+            }
 
             Console.WriteLine($"Intersections found: {deleted.Count}");
             UpdateCoordinates(deleted);
