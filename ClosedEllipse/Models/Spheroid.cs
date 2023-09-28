@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.SignalR;
+
 namespace ClosedEllipse.Models;
 
 public record Spheroid

@@ -5,7 +5,7 @@ namespace ClosedEllipse.Services;
 public class SpheroidGenerator
 {
     private readonly int TryCount = 1_000;
-    // private readonly double Excess = 1.005;
+    private readonly double Excess = 1.005;
 
     private List<Spheroid> Spheroids { get; set; } = new List<Spheroid>();
     private double GlobalVolume { get; set; } 
@@ -13,6 +13,7 @@ public class SpheroidGenerator
     private NumGenerator CenterGenerator { get; set; }
 
     private readonly RequestDTO Request;
+    private readonly ILogger _logger;
 
     private static NumGenerator SetDistribution(NumGenerator generator, string distribution)
     {
@@ -34,8 +35,11 @@ public class SpheroidGenerator
         return generator;
     }
 
-    public SpheroidGenerator(RequestDTO request)
+    public SpheroidGenerator(RequestDTO request, ILogger<SpheroidGenerator> logger)
     {
+        _logger = logger;
+        _logger.LogInformation("Provided request: {request.ToString()} Time: {DateTime.Now}", request.ToString(), DateTime.Now);
+
         if (request.NumberOfItems <= 0 || (long)request.NumberOfItems != request.NumberOfItems)
             throw new ArgumentException("Number of items must be int and must be greater than or equal to one");
 
@@ -79,7 +83,14 @@ public class SpheroidGenerator
 
     public List<Spheroid>? Generate()
     {
-        return Generate((long)Request.NumberOfItems);
+
+        var result = Generate((long)Request.NumberOfItems);
+        if (result is null)
+            _logger.LogWarning("Result is empty");
+        else
+            _logger.LogInformation("Total items generated: {result.Count}", result.Count);
+        
+        return result;
     } 
 
     private List<Spheroid>? Generate(long numOfItems)
@@ -118,7 +129,10 @@ public class SpheroidGenerator
             Request.NC = localVolume / GlobalVolume;
         }
 
-        Console.WriteLine($"Local volume: {localVolume}\nGlobal volume: {GlobalVolume}\nNC: {Request.NC}");
+        _logger.LogInformation(
+            "Local volume: {localVolume} Global volume: {GlobalVolume} NC: {Request.NC}", 
+            localVolume, GlobalVolume, Request.NC
+        );
 
         if (localVolume >= GlobalVolume || Request.NC > 0.4)
             return null;
@@ -143,7 +157,6 @@ public class SpheroidGenerator
                     --j;
                 }
 
-        Console.WriteLine($"Intersections found: {deleted.Count}");
         UpdateCoordinates(deleted);
         
         for (int tryCount = TryCount; tryCount >= 0; --tryCount)
@@ -153,8 +166,6 @@ public class SpheroidGenerator
 
             if (tryCount == 0)
                 break;
-
-            Console.WriteLine($"{TryCount - tryCount + 1}/{TryCount}");
 
             foreach (var del in deleted.ToList())
             {
@@ -174,14 +185,13 @@ public class SpheroidGenerator
                 }
             }
 
-            Console.WriteLine($"Intersections found: {deleted.Count}");
             UpdateCoordinates(deleted);
         }
 
+        _logger.LogWarning("Intersections found: {deleted.Count}", deleted.Count);
         return deleted;
     }
 
-    
     private void UpdateCoordinates(List<Spheroid> items)
     {
         foreach (var item in items.ToList())
@@ -197,17 +207,21 @@ public class SpheroidGenerator
                     {
                         if (tryCount == 0)
                         {
-                            Console.WriteLine($"Skipping object {item}...");
+                            _logger.LogWarning("Skipping object {item}", item);
                             items.Remove(item);
                         }
-                        
+                        if (tryCount % 2 == 1)
+                            Request.Rglobal /= Excess;
+                            
                         item.SetNewCoordinates(new Point(CenterGenerator.NextTriplet(
                             Request.Centers[0],
                             Request.Centers[1]
-                        )) * Request.Rglobal);
+                        )) * Request.Rglobal );
+
+                        if (tryCount % 2 == 1)
+                            Request.Rglobal *= Excess;
                         continue;
                     }
         }
     }
-
 }

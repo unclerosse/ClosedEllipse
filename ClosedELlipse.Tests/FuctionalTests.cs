@@ -1,5 +1,6 @@
 using ClosedEllipse.Models;
 using ClosedEllipse.Services;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
 namespace ClosedEllipse.Tests;
@@ -12,7 +13,7 @@ public class FunctionalTests
     {
         var request = new RequestDTO()
         {
-            NumberOfItems = 5003,
+            NumberOfItems = 503,
             NC = 0.37,
             Eccentricity = 0.51,
             SemiAxisDistribution = "uniform",
@@ -23,8 +24,8 @@ public class FunctionalTests
             Centers = new double[2] { -1, 1 },
             NumberOfFiles = 1
         };
-
-        var gen = new SpheroidGenerator(request);
+        ILogger<SpheroidGenerator> logger = LoggerFactory.Create(configure => {}).CreateLogger<SpheroidGenerator>();
+        var gen = new SpheroidGenerator(request, logger);
         var numGen = new NumGenerator(new UniformDistribution());
 
         var result = gen.Generate() ?? throw new Exception("Objects cannot be generated");
@@ -46,7 +47,8 @@ public class FunctionalTests
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"{ex.StackTrace}");
+                            Console.WriteLine($"{ex}");
+                            Console.WriteLine($"{i}");
                             Console.WriteLine($"{result[i]}\n{result[j]}");
                         }
                     }

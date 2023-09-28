@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import "./ObjectForm.css";
 
 export default function ObjectForm() {
-  const [numberOfItems, setNumberOfItems] = useState(0);
+  const [numberOfItems, setNumberOfItems] = useState(1);
   const [nc, setNC] = useState(0);
   const [eccentricity, setEccentricity] = useState(0);
   const [semiAxisDistribution, setDistribution] = useState('gauss');
@@ -45,14 +45,39 @@ export default function ObjectForm() {
       RequestDTO.Centers = [-1, 1]
     }
 
-    fetch('http://localhost:5050/generate', {
+    fetch('/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(RequestDTO),
     });
+
+    /*
+    
+    .then(response => { 
+        return response.blob() 
+      }).then(blobItem => {
+        const url = window.URL.createObjectURL(
+          new Blob([blobItem]),
+        );
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute(
+          'download',
+          `response.json`,
+        );
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
+      });
+
+    */
   };
+
+  const isDisabled = numberOfItems === "" || nc === "" || rglobal === "" ||
+    eccentricity === "" || semiMinor === "" || semiMajor === "" || semiAxisShape === "" || 
+    semiAxisScale === "" || centerShape === "" || centerScale === "" || numberOfFiles === ""
 
   return (
     <form onSubmit={handleSubmit}>
@@ -178,7 +203,7 @@ export default function ObjectForm() {
         <input className='input-field' type="number" value={numberOfFiles} onChange={(event) => setNumberOfFiles(event.target.value)}/>
       </div>
       
-      <button type="submit">Submit</button>
+      <button type="submit" disabled={isDisabled}>Submit</button>
     </form>
   );
 }
