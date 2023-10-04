@@ -4,7 +4,10 @@ public class NumGenerator
 {
     private INumGenerationStrategy _strategy;
 
-    public NumGenerator() { }
+    public NumGenerator() 
+    {
+        _strategy = new UniformDistribution();
+    }
 
     public NumGenerator(INumGenerationStrategy strategy)
     {

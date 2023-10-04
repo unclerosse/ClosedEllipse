@@ -1,5 +1,4 @@
 using ClosedEllipse.Models;
-using Microsoft.AspNetCore.Http.Extensions;
 
 namespace ClosedEllipse.Services;
 
@@ -10,7 +9,8 @@ public class GenerationService
     {
         _logger = logger;
     }
-    public IResult Generate(GenerationParamsDTO request, HttpContext ctx)
+    
+    public IResult Generate(GenerationParamsDTO request)
     {   
         try
         {
@@ -19,7 +19,7 @@ public class GenerationService
             if (result is null)
                 return Results.BadRequest("Items with this properties cannot be created");
         
-            return Results.Created(ctx.Request.GetDisplayUrl(), result);
+            return Results.Created("/generate", result);
         }
         catch (ArgumentException ex)
         {

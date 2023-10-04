@@ -1,5 +1,3 @@
-using ClosedEllipse.Models;
-using ClosedEllipse.Services;
 using ClosedEllipse.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,10 +36,7 @@ else
 
 app.UseCors();
 
-app.MapPost("/generate", (GenerationService service, GenerationParamsDTO request, HttpContext ctx) =>
-{
-    return service.Generate(request, ctx);
-});
+app.UseSpheroidGenerationService();
 
 app.MapFallbackToFile("index.html");
 
