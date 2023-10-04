@@ -11,7 +11,7 @@ public class FunctionalTests
     [Test]
     public void TestSpheroidIntersection()
     {
-        var request = new RequestDTO()
+        var request = new GenerationParamsDTO()
         {
             NumberOfItems = 503,
             NC = 0.37,
@@ -32,13 +32,13 @@ public class FunctionalTests
 
         for (int i = 0; i < result.Count - 1; ++i)          
             for (int j = i + 1; j < result.Count; ++j)
-                if (Point.Distance(result[i].Coordinates, result[j].Coordinates) <= result[i].SemiMajorAxis + result[j].SemiMajorAxis)
+                if (Point.Distance(result[i].Coordinates, result[j].Coordinates) <= result[i].SemiAxisA + result[j].SemiAxisA)
                     for (int k = 0; k < 100; ++k)
                     {
                         var point = result[i].PointRotation(new Point(
-                            result[i].Coordinates.X + numGen.Next(-1, 1) * result[i].SemiMajorAxis,
-                            result[i].Coordinates.Y + numGen.Next(-1, 1) * result[i].SemiMinorAxis, 
-                            result[i].Coordinates.Z + numGen.Next(-1, 1) * result[i].SemiMinorAxis
+                            result[i].Coordinates.X + numGen.Next(-1, 1) * result[i].SemiAxisA,
+                            result[i].Coordinates.Y + numGen.Next(-1, 1) * result[i].SemiAxisB, 
+                            result[i].Coordinates.Z + numGen.Next(-1, 1) * result[i].SemiAxisB
                         ));
 
                         try

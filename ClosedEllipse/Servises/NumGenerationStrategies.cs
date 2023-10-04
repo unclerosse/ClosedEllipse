@@ -2,15 +2,15 @@ using MathNet.Numerics.Distributions;
 
 namespace ClosedEllipse.Services;
 
-public class GaussDistribution : IStrategy
+public class GaussDistribution : INumGenerationStrategy
 {
-    double IStrategy.GenerateNumber(double mean, double stddev)
+    double INumGenerationStrategy.GenerateNumber(double mean, double stddev)
     {
         return new Normal(mean, stddev).Sample();
     }
 }
 
-public class GammaDistribution : IStrategy
+public class GammaDistribution : INumGenerationStrategy
 {
     public double GenerateNumber(double shape, double scale)
     {
@@ -18,7 +18,7 @@ public class GammaDistribution : IStrategy
     }
 }
 
-public class UniformDistribution : IStrategy
+public class UniformDistribution : INumGenerationStrategy
 {
     public double GenerateNumber(double lower, double upper)
     {

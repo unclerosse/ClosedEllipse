@@ -16,6 +16,7 @@ export default function ObjectForm() {
   const [centerShape, setCenterShape] = useState(0);
   const [centerScale, setCenterScale] = useState(0);
   const [numberOfFiles, setNumberOfFiles] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -44,6 +45,8 @@ export default function ObjectForm() {
     } else {
       RequestDTO.Centers = [-1, 1]
     }
+    
+    setIsLoading(true);
 
     fetch('/generate', {
       method: 'POST',
@@ -51,12 +54,9 @@ export default function ObjectForm() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(RequestDTO),
-    });
-
-    /*
-    
-    .then(response => { 
-        return response.blob() 
+    }).then(response => {
+        setIsLoading(false); 
+        return response.blob(); 
       }).then(blobItem => {
         const url = window.URL.createObjectURL(
           new Blob([blobItem]),
@@ -71,13 +71,11 @@ export default function ObjectForm() {
         link.click();
         link.parentNode.removeChild(link);
       });
-
-    */
   };
 
   const isDisabled = numberOfItems === "" || nc === "" || rglobal === "" ||
     eccentricity === "" || semiMinor === "" || semiMajor === "" || semiAxisShape === "" || 
-    semiAxisScale === "" || centerShape === "" || centerScale === "" || numberOfFiles === ""
+    semiAxisScale === "" || centerShape === "" || centerScale === "" || numberOfFiles === "" || isLoading;
 
   return (
     <form onSubmit={handleSubmit}>
@@ -203,7 +201,9 @@ export default function ObjectForm() {
         <input className='input-field' type="number" value={numberOfFiles} onChange={(event) => setNumberOfFiles(event.target.value)}/>
       </div>
       
-      <button type="submit" disabled={isDisabled}>Submit</button>
-    </form>
+      <button type="submit" disabled={isDisabled}>
+        {(isLoading && <span className="loading-spinner">Loading...</span>) || <span className="loading-spinner">Submit</span>}
+      </button>
+      </form>
   );
 }

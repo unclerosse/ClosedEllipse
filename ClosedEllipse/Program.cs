@@ -1,6 +1,6 @@
 using ClosedEllipse.Models;
 using ClosedEllipse.Services;
-using System.Text.Json;
+using ClosedEllipse.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,13 +10,18 @@ builder.Logging.AddConsole();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddLogging(loggingBuilder => {
+	loggingBuilder.AddFile($"logs/ce-{DateTime.Now:yyyy-MM-dd}.log", append:true);
+});
+
+builder.Services.AddSpheroidGenerationService();
+
 builder.Services.AddCors(options => options
     .AddDefaultPolicy(policy => 
-    {
-        policy.AllowAnyOrigin();
-        policy.AllowAnyHeader();
-        policy.AllowAnyHeader();
-    }));
+        policy.WithOrigins("http://localhost:5070/")
+            .AllowAnyHeader()
+            .AllowAnyHeader()
+    ));
 
 var app = builder.Build();
 
@@ -33,35 +38,11 @@ else
 
 app.UseCors();
 
-app.MapPost("/generate", (RequestDTO request, HttpContext ctx, ILogger<SpheroidGenerator> logger) =>
+app.MapPost("/generate", (GenerationService service, GenerationParamsDTO request, HttpContext ctx) =>
 {
-    try
-    {
-        var gen = new SpheroidGenerator(request, logger);
-
-        var result = gen.Generate()?.Select(x => new ResponseDTO(x)).ToArray();
-        if (result is null)
-            return Results.BadRequest("Items with this properties cannot be created");
-            
-        var fileName = "spheroid-response.json";
-        var filePath = Path.Combine(Directory.GetCurrentDirectory(), fileName);
-
-        // File.WriteAllText(fileName, JsonSerializer.Serialize(result));
-
-        return Results.Created("/generate", result);
-
-    }
-    catch (ArgumentException ex)
-    {
-        app.Logger.LogError("{ex.Message}", ex.Message);
-        return Results.BadRequest(ex.Message);
-    }
-    catch(Exception ex)
-    {
-        app.Logger.LogError("{ex.StackTrace}", ex.StackTrace);
-        return Results.Problem("Something went wrong...");
-    }
+    return service.Generate(request, ctx);
 });
+
 app.MapFallbackToFile("index.html");
 
 app.Run();

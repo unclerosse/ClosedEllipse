@@ -2,16 +2,16 @@ namespace ClosedEllipse.Services;
 
 public class NumGenerator
 {
-    private IStrategy _strategy;
+    private INumGenerationStrategy _strategy;
 
     public NumGenerator() { }
 
-    public NumGenerator(IStrategy strategy)
+    public NumGenerator(INumGenerationStrategy strategy)
     {
         _strategy = strategy;
     }
     
-    public void SetStrategy(IStrategy strategy)
+    public void SetStrategy(INumGenerationStrategy strategy)
     {
         _strategy = strategy;
     }
@@ -32,7 +32,7 @@ public class NumGenerator
     }
 }
 
-public interface IStrategy 
+public interface INumGenerationStrategy 
 {
     double GenerateNumber(double shape, double scale);
 }

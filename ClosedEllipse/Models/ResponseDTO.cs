@@ -16,8 +16,8 @@ public record ResponseDTO
         X = double.Round(spheroid.Coordinates.X, 4);
         Y = double.Round(spheroid.Coordinates.Y, 4);
         Z = double.Round(spheroid.Coordinates.Z, 4);
-        SemiMajorAxis = double.Round(spheroid.SemiMajorAxis, 8);
-        SemiMinorAxis = double.Round(spheroid.SemiMinorAxis, 8);
+        SemiMajorAxis = double.Round(Math.Max(spheroid.SemiAxisA, spheroid.SemiAxisB), 8);
+        SemiMinorAxis = double.Round(Math.Min(spheroid.SemiAxisA, spheroid.SemiAxisB), 8);
         EulerAngleX = spheroid.EulerAngleX;
         EulerAngleY = spheroid.EulerAngleY;
         EulerAngleZ = spheroid.EulerAngleZ;

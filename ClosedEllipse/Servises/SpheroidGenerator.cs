@@ -12,7 +12,7 @@ public class SpheroidGenerator
     private NumGenerator SemiAxisGenerator { get; set; }
     private NumGenerator CenterGenerator { get; set; }
 
-    private readonly RequestDTO Request;
+    private readonly GenerationParamsDTO Request;
     private readonly ILogger _logger;
 
     private static NumGenerator SetDistribution(NumGenerator generator, string distribution)
@@ -35,10 +35,10 @@ public class SpheroidGenerator
         return generator;
     }
 
-    public SpheroidGenerator(RequestDTO request, ILogger<SpheroidGenerator> logger)
+    public SpheroidGenerator(GenerationParamsDTO request, ILogger logger)
     {
         _logger = logger;
-        _logger.LogInformation("Provided request: {request.ToString()} Time: {DateTime.Now}", request.ToString(), DateTime.Now);
+        _logger.LogInformation("Provided request: {request}", request.ToString());
 
         if (request.NumberOfItems <= 0 || (long)request.NumberOfItems != request.NumberOfItems)
             throw new ArgumentException("Number of items must be int and must be greater than or equal to one");
@@ -53,8 +53,8 @@ public class SpheroidGenerator
         if (request.Rglobal < 0)
             throw new ArgumentException("Rglobal must be greater than or equal to zero");
         
-        if (request.Eccentricity < 0 || request.Eccentricity >= 1)
-            throw new ArgumentException("Eccentricity must be greater than or equal to zero and greater than one");
+        if (request.Eccentricity <= 0)
+            throw new ArgumentException("Eccentricity must be greater than zero");
         
         if (request.SemiAxisDistribution == "uniform" && 
             (request.SemiAxes.Length != 2 || request.SemiAxes[0] <= 0 || request.SemiAxes[1] <= 0))
@@ -83,12 +83,14 @@ public class SpheroidGenerator
 
     public List<Spheroid>? Generate()
     {
-
         var result = Generate((long)Request.NumberOfItems);
+
         if (result is null)
             _logger.LogWarning("Result is empty");
+        else if (result.Count == (long)Request.NumberOfItems)
+            _logger.LogInformation("Total items generated: {result}", result.Count);
         else
-            _logger.LogInformation("Total items generated: {result.Count}", result.Count);
+            _logger.LogWarning("Total items generated: {result} out of {NumberOfItems} planned", result.Count, (long)Request.NumberOfItems);
         
         return result;
     } 
@@ -130,7 +132,7 @@ public class SpheroidGenerator
         }
 
         _logger.LogInformation(
-            "Local volume: {localVolume} Global volume: {GlobalVolume} NC: {Request.NC}", 
+            "Local volume: {localVolume} Global volume: {GlobalVolume} NC: {NC}", 
             localVolume, GlobalVolume, Request.NC
         );
 
@@ -188,7 +190,7 @@ public class SpheroidGenerator
             UpdateCoordinates(deleted);
         }
 
-        _logger.LogWarning("Intersections found: {deleted.Count}", deleted.Count);
+        _logger.LogWarning("Intersections found: {deleted}", deleted.Count);
         return deleted;
     }
 

@@ -33,23 +33,28 @@ public record Point
 
     public Point Rotate(double alpha, double beta, double gamma)
     {
-        double rotatedX = X * (Math.Cos(alpha) * Math.Cos(gamma) - Math.Cos(beta) * Math.Sin(alpha) * Math.Sin(gamma)) + 
-                        Y * (-Math.Cos(gamma) * Math.Sin(alpha) - Math.Cos(alpha) * Math.Cos(beta) * Math.Sin(gamma)) + 
-                        Z * Math.Sin(beta) * Math.Sin(gamma);
+        var sinAlpha = Math.Sin(alpha);
+        var cosAlpha = Math.Cos(alpha);
 
-        double rotatedY = X * (Math.Cos(beta) * Math.Cos(gamma) * Math.Sin(alpha) + Math.Cos(alpha) * Math.Sin(gamma)) +
-                        Y * (Math.Cos(alpha) * Math.Cos(beta) * Math.Cos(gamma) - Math.Sin(alpha) * Math.Sin(gamma)) +
-                        Z * (-Math.Cos(gamma) * Math.Sin(beta));
+        var sinBeta = Math.Sin(beta);
+        var cosBeta = Math.Cos(beta);
 
-        double rotatedZ = X * Math.Sin(alpha) * Math.Sin(beta) +
-                        Y * Math.Cos(alpha) * Math.Sin(beta) +
-                        Z * Math.Cos(beta);
-        
-        X = rotatedX;
-        Y = rotatedY;
-        Z = rotatedZ;
+        var sinGamma = Math.Sin(gamma);
+        var cosGamma = Math.Cos(gamma);
 
-        return this;
+        double rotatedX = X * (cosAlpha * cosGamma - cosBeta * sinAlpha * sinGamma) + 
+                        Y * (-cosGamma * sinAlpha - cosAlpha * cosBeta * sinGamma) + 
+                        Z * sinBeta * sinGamma;
+
+        double rotatedY = X * (cosBeta * cosGamma * sinAlpha + cosAlpha * sinGamma) +
+                        Y * (cosAlpha * cosBeta * cosGamma - sinAlpha * sinGamma) +
+                        Z * (-cosGamma * sinBeta);
+
+        double rotatedZ = X * sinAlpha * sinBeta +
+                        Y * cosAlpha * sinBeta +
+                        Z * cosBeta;
+
+        return new Point(rotatedX, rotatedY, rotatedZ);
     }
 
     public static Point operator -(Point p1, Point p2) { return new Point(p1.X - p2.X, p1.Y - p2.Y, p1.Z - p2.Z); }

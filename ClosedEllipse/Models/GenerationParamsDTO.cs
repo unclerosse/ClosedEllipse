@@ -1,6 +1,6 @@
 namespace ClosedEllipse.Models;
 
-public record RequestDTO
+public record GenerationParamsDTO
 {
     public double NumberOfItems { get; set; }
     public double NC { get; set; }
