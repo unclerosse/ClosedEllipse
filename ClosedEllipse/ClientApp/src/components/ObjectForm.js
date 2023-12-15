@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import "./ObjectForm.css";
+import EllipsoidComponent from './EllipsoidComponent';
 
 export default function ObjectForm() {
   const [numberOfItems, setNumberOfItems] = useState(1);
@@ -17,6 +18,7 @@ export default function ObjectForm() {
   const [centerScale, setCenterScale] = useState(0);
   const [numberOfFiles, setNumberOfFiles] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState(null);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -54,23 +56,26 @@ export default function ObjectForm() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(RequestDTO),
-    }).then(response => {
+    })
+      .then(async response => {
         setIsLoading(false); 
-        return response.blob(); 
-      }).then(blobItem => {
-        const url = window.URL.createObjectURL(
-          new Blob([blobItem]),
-        );
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute(
-          'download',
-          `response.json`,
-        );
-        document.body.appendChild(link);
-        link.click();
-        link.parentNode.removeChild(link);
+        if (response.ok) {
+          return response.json();
+        } else {
+          return response.json().then(error => {
+            alert(error);
+          });
+        }
+      })
+      .then(json => {
+        console.log(json);
+        setResult(json);
+      })
+      .catch(error => {
+        console.error(error);
       });
+
+    
   };
 
   const isDisabled = numberOfItems === "" || nc === "" || rglobal === "" ||
@@ -204,6 +209,7 @@ export default function ObjectForm() {
       <button type="submit" disabled={isDisabled}>
         {(isLoading && <span className="loading-spinner">Loading...</span>) || <span className="loading-spinner">Submit</span>}
       </button>
+      <EllipsoidComponent ellipsoids={result} type={volumeType} rgl={rglobal}/>
       </form>
   );
 }
