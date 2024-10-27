@@ -209,7 +209,7 @@ export default function ObjectForm() {
       <button type="submit" disabled={isDisabled}>
         {(isLoading && <span className="loading-spinner">Loading...</span>) || <span className="loading-spinner">Submit</span>}
       </button>
-      <EllipsoidComponent ellipsoids={result} type={volumeType} rgl={rglobal}/>
+      <EllipsoidComponent ellipsoids={result}/>
       </form>
   );
 }

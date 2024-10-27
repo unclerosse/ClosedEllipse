@@ -4,7 +4,7 @@ namespace ClosedEllipse.Services;
 
 public class GaussDistribution : INumGenerationStrategy
 {
-    double INumGenerationStrategy.GenerateNumber(double mean, double stddev)
+    public double GenerateNumber(double mean, double stddev)
     {
         return new Normal(mean, stddev).Sample();
     }
@@ -14,7 +14,7 @@ public class GammaDistribution : INumGenerationStrategy
 {
     public double GenerateNumber(double shape, double scale)
     {
-        return new Gamma(shape, scale).Sample();
+        return new Gamma(shape, scale).Sample() * 2 - 1;
     }
 }
 

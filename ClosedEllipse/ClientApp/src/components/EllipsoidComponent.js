@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 
-const EllipsoidComponent = ({ ellipsoids, rgl, type }) => {
+const EllipsoidComponent = ({ ellipsoids, points }) => {
   const containerRef = createRef();
 
   useEffect(() => {
@@ -37,12 +37,6 @@ const EllipsoidComponent = ({ ellipsoids, rgl, type }) => {
     const light = new THREE.PointLight(0xffffff, 20);
 		camera.add( light );
 
-    // const geometry = new THREE.SphereGeometry(rgl, 32, 32);
-    // const material = new THREE.MeshBasicMaterial({ color: 0x000000 });
-    // const globalVolume = new THREE.Mesh(geometry, material);
-    // scene.add(globalVolume);
-
-
     ellipsoids.forEach((ellipsoidParams) => {
       const {
         x, y, z, semiAxisA, semiAxisB, eulerAngleX, eulerAngleY, eulerAngleZ,
@@ -59,6 +53,20 @@ const EllipsoidComponent = ({ ellipsoids, rgl, type }) => {
 
       scene.add(ellipsoid);
     });
+
+    if (points) {
+      points.forEach((pointParams) => {
+        const {
+          x, y, z
+        } = pointParams;
+
+        var pointGeometry = new THREE.BufferGeometry();
+        pointGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute([x, y, z], 3));
+        var pointMaterial = new THREE.PointsMaterial({ size: 0.1, color: 0xff0000 });
+        var point = new THREE.Points( pointGeometry, pointMaterial );
+        scene.add(point);
+      })
+    }
 
     const animate = () => {
       requestAnimationFrame(animate);
@@ -77,7 +85,7 @@ const EllipsoidComponent = ({ ellipsoids, rgl, type }) => {
       controls.dispose();
       trackballControls.dispose();
     };
-  }, [ellipsoids]);
+  }, [ellipsoids, points]);
 
   return (<div style={{height: '600px'}} ref={containerRef}/>);
 };

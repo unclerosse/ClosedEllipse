@@ -9,6 +9,11 @@ public class IntersectionService
         var spheroid1 = new Spheroid(request.First);
         var spheroid2 = new Spheroid(request.Second);
 
-        return Results.Ok(Spheroid.CheckIntersection(spheroid1, spheroid2));
+        return Results.Ok(new 
+        { 
+            Result = Spheroid.CheckIntersection(spheroid1, spheroid2),
+            FirstPoints = spheroid1.GetSlices(),
+            SecondPoints = spheroid2.GetSlices()
+        });
     }
 }

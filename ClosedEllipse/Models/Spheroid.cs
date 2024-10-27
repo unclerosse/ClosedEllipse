@@ -1,4 +1,3 @@
-using System.Security;
 namespace ClosedEllipse.Models;
 
 public record Spheroid
@@ -63,68 +62,82 @@ public record Spheroid
             (Math.Pow(point.Y, 2) / Math.Pow(SemiAxisB, 2)) + 
             (Math.Pow(point.Z, 2) / Math.Pow(SemiAxisB, 2));
 
-        return double.Round(result, 14) <= 1;
+        return double.Round(result, 8) <= 1;
     }
 
     protected List<Point> SliceSpheroid(int amount)
     {
         var result = new List<Point>();
         
-        for (int i = 0; i < amount; i++)
+        int numZPoints = (int)Math.Sqrt(amount);
+        int numXYPoints = amount / numZPoints;
+
+        for (int i = 0; i < numZPoints; i++)
         {
-            double phi = 2 * Math.PI * i / amount; 
-            double theta = Math.PI * i / amount;
+            double phi = Math.PI * i / (numZPoints - 1);
+            double z = SemiAxisB * Math.Cos(phi);
 
-            double x = SemiAxisA * Math.Cos(phi) * Math.Sin(theta);
-            double y = SemiAxisB * Math.Sin(phi) * Math.Sin(theta);
-            double z = SemiAxisB * Math.Cos(theta);
+            double radiusX = SemiAxisA * Math.Sin(phi);
+            double radiusY = SemiAxisB * Math.Sin(phi);
 
-            result.Add(PointRotation(new Point(Coordinates.X + x, Coordinates.Y + y, Coordinates.Z + z)));
+            for (int j = 0; j < numXYPoints; j++)
+            {
+                double theta = 2 * Math.PI * j / numXYPoints;
+
+                double x = radiusX * Math.Cos(theta);
+                double y = radiusY * Math.Sin(theta);
+
+                result.Add(PointRotation(new (Coordinates.X + x, Coordinates.Y + y, Coordinates.Z + z)));
+            }
         }
-        
+
         return result;
     }
 
 
-    public static bool CheckIntersection(Spheroid firstSpheroid, Spheroid secondSpheroid, int amount=500)
+    public static bool CheckIntersection(Spheroid firstSpheroid, Spheroid secondSpheroid)
     {
-        if (Point.Distance(firstSpheroid.Coordinates, secondSpheroid.Coordinates) >
-            Math.Max(firstSpheroid.SemiAxisA, firstSpheroid.SemiAxisB) +
-            Math.Max(secondSpheroid.SemiAxisA, secondSpheroid.SemiAxisA))
+        var semiAxesSum = Math.Max(firstSpheroid.SemiAxisA, firstSpheroid.SemiAxisB) +
+            Math.Max(secondSpheroid.SemiAxisA, secondSpheroid.SemiAxisB);
+
+        var distance = Point.Distance(firstSpheroid.Coordinates, secondSpheroid.Coordinates);
+        
+        if (distance > semiAxesSum)
             return false;
+
+        if (firstSpheroid.Eccentricity == 1 && secondSpheroid.Eccentricity == 1)
+            return true;
         
         if (secondSpheroid.CheckPoint(firstSpheroid.Coordinates))
             return true;
         
-        var points = firstSpheroid.SliceSpheroid(amount);
-        for (var i = 0; i < points.Count; ++i)
-            if (secondSpheroid.CheckPoint(points[i]))
-                return true;
-
-        return false;
+        var points = firstSpheroid.GetSlices();
+        return points.Any(secondSpheroid.CheckPoint);
     }
     
     public Point PointTransformation(Point point)
     {
-        var x = point.X - Coordinates.X;
-        var y = point.Y - Coordinates.Y;
-        var z = point.Z - Coordinates.Z;
-
-        return new Point(x, y, z);
+        return point - Coordinates;
     }
 
     public Point PointRotation(Point point)
     {
-        return point.Rotate(EulerAngleX, EulerAngleY, EulerAngleZ);
+        point -= Coordinates;
+        point = point.Rotate(EulerAngleX, EulerAngleY, EulerAngleZ);
+        point += Coordinates;
+        return point;
     }
 
     public Point NegativePointRotation(Point point)
     {
-        return point.Rotate(-EulerAngleX, -EulerAngleY, -EulerAngleZ);
+        point -= Coordinates;
+        point = point.Rotate(-EulerAngleX, -EulerAngleY, -EulerAngleZ);
+        point += Coordinates;
+        return point;
     }
 
     public Point[] GetSlices() 
     {
-        return SliceSpheroid(500).ToArray();
+        return [.. SliceSpheroid(500)];
     }
 }
