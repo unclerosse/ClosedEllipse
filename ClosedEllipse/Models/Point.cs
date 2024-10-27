@@ -42,23 +42,25 @@ public record Point
         var sinGamma = Math.Sin(gamma);
         var cosGamma = Math.Cos(gamma);
 
-        double rotatedX = X * (cosAlpha * cosGamma - cosBeta * sinAlpha * sinGamma) + 
-                        Y * (-cosGamma * sinAlpha - cosAlpha * cosBeta * sinGamma) + 
-                        Z * sinBeta * sinGamma;
+        double rotatedX = X * cosBeta * cosGamma + 
+                        Y * (-cosBeta * sinGamma) + 
+                        Z * sinBeta;
 
-        double rotatedY = X * (cosBeta * cosGamma * sinAlpha + cosAlpha * sinGamma) +
-                        Y * (cosAlpha * cosBeta * cosGamma - sinAlpha * sinGamma) +
-                        Z * (-cosGamma * sinBeta);
+        double rotatedY = X * (cosAlpha * sinGamma  + sinAlpha * sinBeta * cosGamma) +
+                        Y * (cosAlpha * cosGamma - sinAlpha * sinBeta * sinGamma) +
+                        Z * (-cosBeta * sinAlpha);
 
-        double rotatedZ = X * sinAlpha * sinBeta +
-                        Y * cosAlpha * sinBeta +
-                        Z * cosBeta;
+        double rotatedZ = X * (sinAlpha * sinGamma - cosAlpha * sinBeta * cosGamma) +
+                        Y * (cosGamma * sinAlpha + cosAlpha * sinBeta * sinGamma) +
+                        Z * cosAlpha * cosBeta;
 
         return new Point(rotatedX, rotatedY, rotatedZ);
     }
 
+    public static Point operator +(Point p1, Point p2) { return new Point(p1.X + p2.X, p1.Y + p2.Y, p1.Z + p2.Z); }
     public static Point operator -(Point p1, Point p2) { return new Point(p1.X - p2.X, p1.Y - p2.Y, p1.Z - p2.Z); }
     public static Point operator *(Point p, double number) { return new Point(p.X * number, p.Y * number, p.Z * number); }
+    public static Point operator /(Point p, double number) { return new Point(p.X / number, p.Y / number, p.Z / number); }
 
     public static double Distance(Point p1, Point p2) { return (p2 - p1).Length; }
     public static double Distance(Point p) { return p.Length; }

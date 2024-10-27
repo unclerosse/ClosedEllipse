@@ -53,4 +53,16 @@ public class FunctionalTests
                         }
                     }
     }
+
+    [Test]
+    public void TestPointRotation()
+    {
+        var spheroid = new Spheroid(1, 5, new(1, 1, 1), 3.14, 0, 0);
+
+        var point = new Point(4, 7, 2);
+        var newPoint = spheroid.PointRotation(point);
+        var negativePoint = spheroid.NegativePointRotation(newPoint);
+
+        Assert.That(negativePoint, Is.EqualTo(point));
+    }
 }
